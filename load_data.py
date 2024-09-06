@@ -15,6 +15,7 @@ import rasterio
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import spectral
 
 def plot_false_color(img_array, nir=100, r=50, g=30):
     # 选择三个波段（例如，近红外、红、绿）
@@ -36,12 +37,11 @@ def plot_false_color(img_array, nir=100, r=50, g=30):
     plt.show()
 
 
-def load_mining_region_data(plot=False):
+def load_mining_region_data(plot=False, need_wavelengths=False):
     file_name = 'data/mining region/'
     # 读取高光谱影像
     with rasterio.open(file_name + 'GF-5_image.tif') as src:
         img_array = src.read()  # 读取所有波段的数据
-        img_meta = src.meta  # 获取影像的元数据
 
     if plot:
         plot_false_color(img_array)
@@ -56,18 +56,36 @@ def load_mining_region_data(plot=False):
     som_content = np.array(df.iloc[2, 1:])
 
     # 提取土壤样本对应的光谱数据
-    # 假设每个像素对应一个样本，且波段顺序与Excel中的波段顺序一致
     samples_spectral = img_array[:, row_indices, col_indices]
-    # print(img_array.min(), img_array.max())
-    return img_array, samples_spectral, zn_content, som_content
+
+    # 读取波长信息
+    wavelengths = []
+    with open(file_name + '土壤赛道-矿区数据集说明.txt', 'r') as f:
+        # 跳过前12行
+        for _ in range(12):
+            next(f)
+        # 逐行读取，提取波长值
+        for line in f:
+            # 去除行尾的换行符
+            line = line.strip()
+            # 分割行，获取波段号和波长值
+            band, wavelength = line.split(',')
+            # 将波长值转换为浮点数，并添加到列表中
+            wavelengths.append(float(wavelength))
+    wavelengths = np.array(wavelengths)
+
+    if need_wavelengths:
+        return img_array, samples_spectral, zn_content, som_content, wavelengths
+    else:
+        return img_array, samples_spectral, zn_content, som_content
 
 
-def load_cultivated_land_data(plot=False):
+def load_cultivated_land_data(plot=False, need_wavelengths=False):
     file_name = 'data/cultivated land/'
     # 读取高光谱影像
-    with rasterio.open(file_name + 'Imagedata.img') as src:
-        img_array = src.read()  # 读取所有波段的数据
-        img_meta = src.meta  # 获取影像的元数据
+    img = spectral.envi.open(file_name+'Imagedata.hdr', file_name+'Imagedata.img')
+    img_array = np.array(img.load())
+    wavelengths = np.array(img.bands.centers)
 
     if plot:
         plot_false_color(img_array)
@@ -82,8 +100,12 @@ def load_cultivated_land_data(plot=False):
     # print(samples_spectral)
 
     # print(img_array.min(), img_array.max())
-    return img_array, samples_spectral, salt_content, som_content
-
+    if need_wavelengths:
+        return img_array, samples_spectral, salt_content, som_content, wavelengths
+    else:
+        return img_array, samples_spectral, salt_content, som_content
 
 if __name__ == '__main__':
-    load_mining_region_data()
+    img_array, samples_spectral, salt_content, som_content, wavelengths = load_mining_region_data(
+        need_wavelengths=True)
+    # print(wavelengths)
