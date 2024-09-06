@@ -36,7 +36,7 @@ def plot_false_color(img_array, nir=100, r=50, g=30):
     plt.show()
 
 
-def load_tif_data(plot=False):
+def load_mining_region_data(plot=False):
     file_name = 'data/mining region/'
     # 读取高光谱影像
     with rasterio.open(file_name + 'GF-5_image.tif') as src:
@@ -62,7 +62,7 @@ def load_tif_data(plot=False):
     return img_array, samples_spectral, zn_content, som_content
 
 
-def load_img_data(plot=False):
+def load_cultivated_land_data(plot=False):
     file_name = 'data/cultivated land/'
     # 读取高光谱影像
     with rasterio.open(file_name + 'Imagedata.img') as src:
@@ -86,4 +86,4 @@ def load_img_data(plot=False):
 
 
 if __name__ == '__main__':
-    load_tif_data()
+    load_mining_region_data()
