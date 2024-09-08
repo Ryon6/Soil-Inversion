@@ -36,15 +36,13 @@ def ml_model_test(X, y, plot=False, seed = 42):
     for name, model in models.items():
         model.fit(X_train, y_train)
         y_pred = model.predict(X_test)
-        mse = mean_squared_error(y_test, y_pred)
+        rmse = mean_squared_error(y_test, y_pred) ** 0.5
         r2 = r2_score(y_test, y_pred)
-        results[name] = {'mse': mse, 'r2': r2}
+        results[name] = {'rmse': rmse, 'r2': r2}
 
     # 提取MSE和R-squared数据
-    mse_values = [result['mse'] for result in results.values()]
+    rmse_values = [result['rmse'] for result in results.values()]
     r2_values = [result['r2'] for result in results.values()]
-    print(mse_values)
-    print(r2_values)
 
     if plot:
         # 设置matplotlib显示中文
@@ -57,7 +55,7 @@ def ml_model_test(X, y, plot=False, seed = 42):
         color = 'tab:blue'
         ax1.set_xlabel('model')
         ax1.set_ylabel('MSE', color=color)
-        ax1.plot(list(models.keys()), mse_values, color=color ,label='MSE')
+        ax1.plot(list(models.keys()), rmse_values, color=color ,label='MSE')
         ax1.tick_params(axis='y', labelcolor=color)
 
         # 创建第二个y轴，绘制R-squared折线图
@@ -68,4 +66,4 @@ def ml_model_test(X, y, plot=False, seed = 42):
         ax2.tick_params(axis='y', labelcolor=color)
         plt.show()
 
-    return mse_values, r2_values
+    return rmse_values, r2_values
