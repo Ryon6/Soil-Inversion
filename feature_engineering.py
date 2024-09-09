@@ -6,9 +6,15 @@ from sklearn.feature_selection import mutual_info_regression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import Lasso
 
+from load_data import load_mining_region_data, load_cultivated_land_data
+from model.machine_learning import ml_model_test
+import matplotlib.pyplot as plt
+from sklearn.svm import SVR
+
 def feature_select(X, y, dim=20, method='rf'):
     """
     特征选择方法
+    :param method:
     :param X: 特征数据集
     :param y: 目标变量
     :param dim: 要选择的特征数量
@@ -30,13 +36,14 @@ def feature_select(X, y, dim=20, method='rf'):
         # 获取特征系数
         scores = lasso.coef_
         selected_indices = np.argsort(np.abs(scores))[-dim:]
-
-    else: return
+    else:
+        return
 
     # 对互信息进行排序，并获取最高的dim个索引，选择对应的特征数据
     selected_x = X[:, selected_indices]
 
     return selected_x, selected_indices
+
 
 def first_order_differential(hsi, wavelengths):
     """
@@ -44,12 +51,10 @@ def first_order_differential(hsi, wavelengths):
     :param wavelengths: 波段中间波长信息
     :return: 变换结果
     """
-    delta_lambda = wavelengths[1] - wavelengths[0]
-    first_diff = (hsi[1:] - hsi[:-1]) / (2 * delta_lambda)
-    first_diff = first_diff[1:]
+    delta_lambda = np.diff(wavelengths)
+    first_diff = (hsi[:, 1:] - hsi[:, :-1]) / (2 * delta_lambda)
 
     return first_diff
-
 
 
 def second_order_differential(hsi):
@@ -61,31 +66,71 @@ def second_order_differential(hsi):
     """
     return hsi
 
-if __name__ == '__main__':
-    from load_data import load_mining_region_data, load_cultivated_land_data
-    from model.machine_learning import ml_model_test
-    import matplotlib.pyplot as plt
 
-    img_array, samples_spectral, zn_content, som_content, wavelengths = load_mining_region_data(need_wavelengths=True)
-    samples_spectral = samples_spectral.T
-
-    # 评估特征数量从3到41的r2值
-    dims = range(3, 42, 2)
+def feature_select_test(X, y, models=None, dims = range(3, 42, 2), plot=False):
+    # 评估特征数量为dims的r2值
     r2_list = []
     for dim in dims:
-        feature, _ = feature_select(samples_spectral, som_content, dim, method='rf')
-        rmse_values, r2_values = ml_model_test(feature, som_content, plot=False)
+        feature, _ = feature_select(X, y, dim, method='rf')
+        rmse_values, r2_values = ml_model_test(feature, y, models=models, plot=False)
         r2_list.append(max(r2_values))
 
-    # 绘制折线图
-    plt.plot(dims, r2_list, marker='o')
-    plt.xlabel('Number of Features')
-    plt.ylabel('R^2 Score')
-    plt.title('R^2 Score vs Number of Features')
-    plt.xticks(dims)
-    plt.grid(True)
-    plt.show()
+    if plot:
+        # 绘制折线图
+        plt.plot(dims, r2_list, marker='o')
+        plt.xlabel('Number of Features')
+        plt.ylabel('R^2 Score')
+        plt.title('R^2 Score vs Number of Features')
+        plt.xticks(dims)
+        plt.grid(True)
+        plt.show()
 
     # 找出最优的特征数量
     optimal_dim = dims[np.argmax(r2_list)]
     print(f'Optimal number of features: {optimal_dim}')
+
+
+def para_search(X, y):
+    from sklearn.model_selection import GridSearchCV
+    svr = SVR()
+    # 定义参数网格
+    param_grid = {
+        'C': [0.1, 1, 8],
+        'epsilon': [0.1, 0.01, 0.001],
+        # 'kernel': ['rbf', 'linear', 'poly', 'sigmoid'],
+        'gamma': ['scale', 0.01, 0.1, 0.05, 0.001]
+    }
+    # 创建网格搜索对象
+    grid_search = GridSearchCV(estimator=svr, param_grid=param_grid, cv=3, scoring='r2')
+
+    # 执行网格搜索
+    grid_search.fit(X, y)
+    # 打印最佳参数和最佳得分
+    print(grid_search.best_params_)
+    print(grid_search.best_score_)
+
+
+def main():
+    img_array, samples_spectral, zn_content, som_content, wavelengths = load_mining_region_data(need_wavelengths=True)
+    samples_spectral = samples_spectral.T
+
+
+    # 检查全为0的波段，并剔除
+    zero_bands = []
+    for i in range(img_array.shape[0]):
+        if np.all(img_array[i] == 0):
+            zero_bands.append(i)
+    img_array = np.delete(img_array, zero_bands, axis=0)
+
+    samples_spectral = np.delete(samples_spectral, zero_bands, axis=1)
+    wavelengths = np.delete(wavelengths, zero_bands)
+
+    X = first_order_differential(samples_spectral, wavelengths)
+
+    # para_search(samples_spectral, som_content)
+    models = {'SVR': SVR(C=8, epsilon=0.001, gamma=0.01)}
+    feature_select_test(samples_spectral, som_content, plot=True)
+
+
+if __name__ == '__main__':
+    main()

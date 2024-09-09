@@ -74,6 +74,8 @@ def load_mining_region_data(plot=False, need_wavelengths=False):
             wavelengths.append(float(wavelength))
     wavelengths = np.array(wavelengths)
 
+    img_array = img_array.astype(np.float64)
+    samples_spectral = samples_spectral.astype(np.float64)
     if need_wavelengths:
         return img_array, samples_spectral, zn_content, som_content, wavelengths
     else:
@@ -99,13 +101,16 @@ def load_cultivated_land_data(plot=False, need_wavelengths=False):
     samples_spectral = np.array(df.iloc[:, 3:])
     # print(samples_spectral)
 
-    # print(img_array.min(), img_array.max())
+    img_array = img_array.astype(np.float64)
+    samples_spectral = samples_spectral.astype(np.float64)
     if need_wavelengths:
         return img_array, samples_spectral, salt_content, som_content, wavelengths
     else:
         return img_array, samples_spectral, salt_content, som_content
 
-if __name__ == '__main__':
+def main():
     img_array, samples_spectral, salt_content, som_content, wavelengths = load_mining_region_data(
         need_wavelengths=True)
-    # print(wavelengths)
+
+if __name__ == '__main__':
+    main()

@@ -13,7 +13,8 @@ from sklearn.svm import SVR
 from sklearn.neural_network import MLPRegressor
 from sklearn.ensemble import RandomForestRegressor
 
-def ml_model_test(X, y, plot=False, seed = 42):
+
+def ml_model_test(X, y, models=None, plot=False, seed=42):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=seed)
 
     # 标准化
@@ -21,15 +22,16 @@ def ml_model_test(X, y, plot=False, seed = 42):
     X_train = scaler.fit_transform(X_train)
     X_test = scaler.transform(X_test)
 
-    # 定义模型
-    models = {
-        'LinearRegression': LinearRegression(),
-        'DecisionTreeRegressor': DecisionTreeRegressor(max_depth=5 ,min_samples_split=2 ,max_features='sqrt'
-                                                       ,min_samples_leaf=1 ,splitter='best'),
-        'MLPRegressor': MLPRegressor(hidden_layer_sizes=(20, 100, 20), max_iter=1000, alpha=0.001, learning_rate_init=0.05),
-        'RandomForestRegressor': RandomForestRegressor(max_depth=10 ,max_features='log2' ,min_samples_leaf=1
-                                                       ,min_samples_split=15 ,n_estimators=500)
-    }
+    if models is None:
+        models = {
+            # 'LinearRegression': LinearRegression(),
+            # 'DecisionTreeRegressor': DecisionTreeRegressor(max_depth=5, min_samples_split=2, max_features='sqrt',
+            #                                                min_samples_leaf=1, splitter='best'),
+            'MLPRegressor': MLPRegressor(hidden_layer_sizes=(20, 100, 20), max_iter=1000, alpha=0.001,
+                                         learning_rate_init=0.05),
+            # 'RandomForestRegressor': RandomForestRegressor(max_depth=10, max_features='log2', min_samples_leaf=1,
+            #                                                min_samples_split=15, n_estimators=500)
+        }
 
     # 训练并评估模型
     results = {}
@@ -55,7 +57,7 @@ def ml_model_test(X, y, plot=False, seed = 42):
         color = 'tab:blue'
         ax1.set_xlabel('model')
         ax1.set_ylabel('MSE', color=color)
-        ax1.plot(list(models.keys()), rmse_values, color=color ,label='MSE')
+        ax1.plot(list(models.keys()), rmse_values, color=color, label='MSE')
         ax1.tick_params(axis='y', labelcolor=color)
 
         # 创建第二个y轴，绘制R-squared折线图
