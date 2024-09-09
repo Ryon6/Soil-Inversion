@@ -2,6 +2,7 @@
 用于测试机器学习模型效果
 """
 import matplotlib.pyplot as plt
+import numpy as np
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
@@ -14,7 +15,7 @@ from sklearn.neural_network import MLPRegressor
 from sklearn.ensemble import RandomForestRegressor
 
 
-def ml_model_test(X, y, models=None, plot=False, seed=42):
+def ml_model_test(X, y, hsi=None, models=None, plot=False, seed=42):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=seed)
 
     # 标准化
@@ -35,16 +36,33 @@ def ml_model_test(X, y, models=None, plot=False, seed=42):
 
     # 训练并评估模型
     results = {}
+    best_model_name = None
+    best_r2 = -100
     for name, model in models.items():
         model.fit(X_train, y_train)
         y_pred = model.predict(X_test)
         rmse = mean_squared_error(y_test, y_pred) ** 0.5
         r2 = r2_score(y_test, y_pred)
         results[name] = {'rmse': rmse, 'r2': r2}
+        if r2 > best_r2:
+            best_r2 = r2; best_model_name = name
 
     # 提取MSE和R-squared数据
     rmse_values = [result['rmse'] for result in results.values()]
     r2_values = [result['r2'] for result in results.values()]
+
+    if hsi is not None:
+        hsi_shape = hsi.shape
+        hsi = np.reshape(hsi,[hsi_shape[0],-1])
+
+        # 测试集上表现最优的模型
+        model = models[best_model_name]
+        print('最优模型', models.__class__)
+        hsi = scaler.transform(hsi)
+        # model.fit(X, y)
+        y_pred = model.predict(hsi)
+        y_pred = np.reshape(y_pred,[hsi_shape[1], hsi_shape[2]])
+        plt.imshow(y_pred)
 
     if plot:
         # 设置matplotlib显示中文

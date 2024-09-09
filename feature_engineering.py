@@ -11,6 +11,7 @@ from model.machine_learning import ml_model_test
 import matplotlib.pyplot as plt
 from sklearn.svm import SVR
 
+
 def feature_select(X, y, dim=20, method='rf'):
     """
     特征选择方法
@@ -20,6 +21,7 @@ def feature_select(X, y, dim=20, method='rf'):
     :param dim: 要选择的特征数量
     :return: 选择后的特征数据和对应的索引
     """
+    # X = (X - X.min()) / (X.max() - X.min())
     # 计算互信息
     if method == 'mi':
         scores = mutual_info_regression(X, y)
@@ -56,6 +58,18 @@ def first_order_differential(hsi, wavelengths):
 
     return first_diff
 
+def delete_all_zero(img_array, samples_spectral, wavelengths):
+    # 检查全为0的波段，并剔除
+    zero_bands = []
+    for i in range(img_array.shape[0]):
+        if np.all(img_array[i] == 0):
+            zero_bands.append(i)
+    img_array = np.delete(img_array, zero_bands, axis=0)
+
+    samples_spectral = np.delete(samples_spectral, zero_bands, axis=1)
+    wavelengths = np.delete(wavelengths, zero_bands)
+    return img_array, samples_spectral, wavelengths
+
 
 def second_order_differential(hsi):
     """
@@ -67,11 +81,11 @@ def second_order_differential(hsi):
     return hsi
 
 
-def feature_select_test(X, y, models=None, dims = range(3, 42, 2), plot=False):
+def feature_select_test(X, y, method='mi', models=None, dims=range(3, 42, 2), plot=False):
     # 评估特征数量为dims的r2值
     r2_list = []
     for dim in dims:
-        feature, _ = feature_select(X, y, dim, method='rf')
+        feature, _ = feature_select(X, y, dim, method=method)
         rmse_values, r2_values = ml_model_test(feature, y, models=models, plot=False)
         r2_list.append(max(r2_values))
 
@@ -88,6 +102,7 @@ def feature_select_test(X, y, models=None, dims = range(3, 42, 2), plot=False):
     # 找出最优的特征数量
     optimal_dim = dims[np.argmax(r2_list)]
     print(f'Optimal number of features: {optimal_dim}')
+    print(f'Optimal R-square: {np.max(r2_list)}')
 
 
 def para_search(X, y):
@@ -114,7 +129,6 @@ def main():
     img_array, samples_spectral, zn_content, som_content, wavelengths = load_mining_region_data(need_wavelengths=True)
     samples_spectral = samples_spectral.T
 
-
     # 检查全为0的波段，并剔除
     zero_bands = []
     for i in range(img_array.shape[0]):
@@ -128,8 +142,10 @@ def main():
     X = first_order_differential(samples_spectral, wavelengths)
 
     # para_search(samples_spectral, som_content)
-    models = {'SVR': SVR(C=8, epsilon=0.001, gamma=0.01)}
-    feature_select_test(samples_spectral, som_content, plot=True)
+    models = None
+    # models = {'SVR': SVR(C=8, epsilon=0.001, gamma=0.01)}
+    # models = {'RF': RandomForestRegressor()}
+    feature_select_test(X, som_content, method='LASSO', models=models, dims=range(1, 42, 2), plot=True)
 
 
 if __name__ == '__main__':
