@@ -47,14 +47,22 @@ def feature_select(X, y, dim=20, method='rf'):
     return selected_x, selected_indices
 
 
-def first_order_differential(hsi, wavelengths):
+def first_order_differential(hsi, wavelengths, axis=1):
     """
-    :param hsi: 高光谱图像
+    :param hsi: 高光谱图像，shape = (n, B), (B,h,w)
     :param wavelengths: 波段中间波长信息
+    :param axis: 指定差分的维度，0表示行（波段）
     :return: 变换结果
     """
+    # 计算波长间隔
     delta_lambda = np.diff(wavelengths)
-    first_diff = (hsi[:, 1:] - hsi[:, :-1]) / (2 * delta_lambda)
+    diff_hsi = np.diff(hsi, axis=axis)
+    shape = np.ones(hsi.ndim,dtype=np.int16)
+    shape[axis] = diff_hsi.shape[axis]
+
+    delta_lambda = np.reshape(delta_lambda,shape)
+    # 计算一阶微分
+    first_diff = diff_hsi / (2 * delta_lambda)
 
     return first_diff
 
@@ -130,14 +138,7 @@ def main():
     samples_spectral = samples_spectral.T
 
     # 检查全为0的波段，并剔除
-    zero_bands = []
-    for i in range(img_array.shape[0]):
-        if np.all(img_array[i] == 0):
-            zero_bands.append(i)
-    img_array = np.delete(img_array, zero_bands, axis=0)
-
-    samples_spectral = np.delete(samples_spectral, zero_bands, axis=1)
-    wavelengths = np.delete(wavelengths, zero_bands)
+    img_array, samples_spectral, wavelengths = delete_all_zero(img_array, samples_spectral, wavelengths)
 
     X = first_order_differential(samples_spectral, wavelengths)
 
@@ -145,7 +146,7 @@ def main():
     models = None
     # models = {'SVR': SVR(C=8, epsilon=0.001, gamma=0.01)}
     # models = {'RF': RandomForestRegressor()}
-    feature_select_test(X, som_content, method='LASSO', models=models, dims=range(1, 42, 2), plot=True)
+    feature_select_test(X, som_content, method='LASSO', models=models, dims=range(1, 42), plot=True)
 
 
 if __name__ == '__main__':

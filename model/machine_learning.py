@@ -57,12 +57,17 @@ def ml_model_test(X, y, hsi=None, models=None, plot=False, seed=42):
 
         # 测试集上表现最优的模型
         model = models[best_model_name]
-        print('最优模型', models.__class__)
-        hsi = scaler.transform(hsi)
-        # model.fit(X, y)
+        model.fit(X_train, y_train)
+        print('最优模型', model.__class__)
+        print('最优r2',best_r2)
+        print('最优RMSE', np.max(rmse_values))
+        hsi = scaler.transform(hsi.T)
+
         y_pred = model.predict(hsi)
         y_pred = np.reshape(y_pred,[hsi_shape[1], hsi_shape[2]])
         plt.imshow(y_pred)
+        plt.colorbar()
+        plt.show()
 
     if plot:
         # 设置matplotlib显示中文

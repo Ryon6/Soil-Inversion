@@ -1,8 +1,10 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 from load_data import load_cultivated_land_data, load_mining_region_data
 from model.machine_learning import ml_model_test
-from feature_engineering import feature_select, first_order_differential
+from feature_engineering import feature_select, first_order_differential, delete_all_zero
+
 from sklearn.svm import SVR
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.neural_network import MLPRegressor
@@ -10,15 +12,18 @@ from sklearn.neural_network import MLPRegressor
 if __name__ == '__main__':
     img_array, samples_spectral, zn_content, som_content, wavelengths = load_mining_region_data(need_wavelengths=True)
     samples_spectral = samples_spectral.T
-
     y = som_content
-    samples_spectral = first_order_differential(samples_spectral, wavelengths)
-    samples_spectral, indices = feature_select(samples_spectral, y, 40, method='LASSO')
 
-    his_shape = img_array.shape
-    img_array = np.reshape(img_array,[his_shape[0],-1]).T
-    img_array = first_order_differential(img_array, wavelengths)
-    img_array = img_array[:, :]
+    # 异常值去除
+    img_array, samples_spectral, wavelengths = delete_all_zero(img_array, samples_spectral, wavelengths)
+
+    # 光谱微分变换
+    samples_spectral = first_order_differential(samples_spectral, wavelengths, axis=1)
+    img_array = first_order_differential(img_array, wavelengths, axis=0)
+
+    # 特征选择
+    samples_spectral, indices = feature_select(samples_spectral, y, 13, method='LASSO')
+    img_array = img_array[indices,:,:]
 
     models = {
         'SVR': SVR(C=8, epsilon=0.001, gamma=0.01),
