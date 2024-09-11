@@ -1,5 +1,6 @@
 """
-TODO: 光谱微分变换，特征波段选择
+TODO: feature_select 重构：过滤法，包裹法，嵌入法
+TODO: 离散小波变换
 """
 import numpy as np
 from sklearn.feature_selection import mutual_info_regression
@@ -10,7 +11,7 @@ from load_data import load_mining_region_data, load_cultivated_land_data
 from model.machine_learning import ml_model_test
 import matplotlib.pyplot as plt
 from sklearn.svm import SVR
-
+from sklearn.neural_network import MLPRegressor
 
 def feature_select(X, y, dim=20, method='rf'):
     """
@@ -143,7 +144,10 @@ def main():
     X = first_order_differential(samples_spectral, wavelengths)
 
     # para_search(samples_spectral, som_content)
-    models = None
+    models = {
+        'MLPRegressor': MLPRegressor(hidden_layer_sizes=(100, 200, 100), max_iter=4000, alpha=0.001,
+                                     learning_rate_init=0.001),
+    }
     # models = {'SVR': SVR(C=8, epsilon=0.001, gamma=0.01)}
     # models = {'RF': RandomForestRegressor()}
     feature_select_test(X, som_content, method='LASSO', models=models, dims=range(1, 42), plot=True)
