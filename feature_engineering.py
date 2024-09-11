@@ -1,17 +1,20 @@
 """
 TODO: feature_select 重构：过滤法，包裹法，嵌入法
 TODO: 噪声波段去除
+TODO: PCA降维
 """
 import numpy as np
 from sklearn.feature_selection import mutual_info_regression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import Lasso
-
-from load_data import load_mining_region_data, load_cultivated_land_data
-from model.machine_learning import ml_model_test
-import matplotlib.pyplot as plt
 from sklearn.svm import SVR
 from sklearn.neural_network import MLPRegressor
+
+from load_data import load_mining_region_data, load_cultivated_land_data
+from dwt import wavelet_denoising
+from model.machine_learning import ml_model_test
+import matplotlib.pyplot as plt
+
 
 
 def feature_select(X, y, dim=20, method='rf'):
@@ -107,7 +110,13 @@ def main():
     img_array, samples_spectral, zn_content, som_content, wavelengths = load_mining_region_data(need_wavelengths=True)
     samples_spectral = samples_spectral.T
 
-    X = first_order_differential(samples_spectral, wavelengths)
+    # 光谱微分变换
+    X = first_order_differential(samples_spectral, wavelengths, axis=1)
+    img_array = first_order_differential(img_array, wavelengths, axis=0)
+
+    # 离散小波变换
+    X = wavelet_denoising(X.T, 'db4', 5).T
+    img_array = wavelet_denoising(img_array, 'db4', 5)
 
     # para_search(samples_spectral, som_content)
     models = {
@@ -116,7 +125,7 @@ def main():
     }
     # models = {'SVR': SVR(C=8, epsilon=0.001, gamma=0.01)}
     # models = {'RF': RandomForestRegressor()}
-    feature_select_test(X, som_content, method='LASSO', models=models, dims=range(1, 42), plot=True)
+    feature_select_test(X, som_content, method='LASSO', models=models, dims=range(4, 42), plot=True)
 
 
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 import numpy as np
 import pywt
-from load_data import load_mining_region_data, delete_all_zero
-from feature_engineering import first_order_differential
+from load_data import load_mining_region_data
+# from feature_engineering import first_order_differential
 import matplotlib.pyplot as plt
 
 
