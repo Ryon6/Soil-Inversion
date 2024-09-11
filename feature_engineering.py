@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from sklearn.svm import SVR
 from sklearn.neural_network import MLPRegressor
 
+
 def feature_select(X, y, dim=20, method='rf'):
     """
     特征选择方法
@@ -58,26 +59,14 @@ def first_order_differential(hsi, wavelengths, axis=1):
     # 计算波长间隔
     delta_lambda = np.diff(wavelengths)
     diff_hsi = np.diff(hsi, axis=axis)
-    shape = np.ones(hsi.ndim,dtype=np.int16)
+    shape = np.ones(hsi.ndim, dtype=np.int16)
     shape[axis] = diff_hsi.shape[axis]
 
-    delta_lambda = np.reshape(delta_lambda,shape)
+    delta_lambda = np.reshape(delta_lambda, shape)
     # 计算一阶微分
     first_diff = diff_hsi / (2 * delta_lambda)
 
     return first_diff
-
-def delete_all_zero(img_array, samples_spectral, wavelengths):
-    # 检查全为0的波段，并剔除
-    zero_bands = []
-    for i in range(img_array.shape[0]):
-        if np.all(img_array[i] == 0):
-            zero_bands.append(i)
-    img_array = np.delete(img_array, zero_bands, axis=0)
-
-    samples_spectral = np.delete(samples_spectral, zero_bands, axis=1)
-    wavelengths = np.delete(wavelengths, zero_bands)
-    return img_array, samples_spectral, wavelengths
 
 
 def second_order_differential(hsi):
@@ -114,32 +103,9 @@ def feature_select_test(X, y, method='mi', models=None, dims=range(3, 42, 2), pl
     print(f'Optimal R-square: {np.max(r2_list)}')
 
 
-def para_search(X, y):
-    from sklearn.model_selection import GridSearchCV
-    svr = SVR()
-    # 定义参数网格
-    param_grid = {
-        'C': [0.1, 1, 8],
-        'epsilon': [0.1, 0.01, 0.001],
-        # 'kernel': ['rbf', 'linear', 'poly', 'sigmoid'],
-        'gamma': ['scale', 0.01, 0.1, 0.05, 0.001]
-    }
-    # 创建网格搜索对象
-    grid_search = GridSearchCV(estimator=svr, param_grid=param_grid, cv=3, scoring='r2')
-
-    # 执行网格搜索
-    grid_search.fit(X, y)
-    # 打印最佳参数和最佳得分
-    print(grid_search.best_params_)
-    print(grid_search.best_score_)
-
-
 def main():
     img_array, samples_spectral, zn_content, som_content, wavelengths = load_mining_region_data(need_wavelengths=True)
     samples_spectral = samples_spectral.T
-
-    # 检查全为0的波段，并剔除
-    img_array, samples_spectral, wavelengths = delete_all_zero(img_array, samples_spectral, wavelengths)
 
     X = first_order_differential(samples_spectral, wavelengths)
 

@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 from load_data import load_cultivated_land_data, load_mining_region_data
 from model.machine_learning import ml_model_test
-from feature_engineering import feature_select, first_order_differential, delete_all_zero
+from feature_engineering import feature_select, first_order_differential
 
 from sklearn.svm import SVR
 from sklearn.ensemble import RandomForestRegressor
@@ -13,9 +13,6 @@ if __name__ == '__main__':
     img_array, samples_spectral, zn_content, som_content, wavelengths = load_mining_region_data(need_wavelengths=True)
     samples_spectral = samples_spectral.T
     y = zn_content
-
-    # 异常值去除
-    img_array, samples_spectral, wavelengths = delete_all_zero(img_array, samples_spectral, wavelengths)
 
     # 光谱微分变换
     samples_spectral = first_order_differential(samples_spectral, wavelengths, axis=1)

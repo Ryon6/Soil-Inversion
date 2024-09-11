@@ -16,6 +16,29 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import spectral
+import os
+
+
+def display_and_save_bands(img_array, output_folder="output"):
+    """
+    显示并保存高光谱图像的每个波段灰度图
+
+    Args:
+        img_array: 高光谱图像数据，形状为(波段数, 高, 宽)
+        output_folder: 输出文件夹路径
+    """
+
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    for i in range(img_array.shape[0]):
+        band_img = img_array[i, :, :]
+        plt.imshow(band_img, cmap='gray')
+        plt.title(f"band{i + 1}")
+        plt.axis('off')
+        plt.savefig(os.path.join(output_folder, f"band_{i + 1}.png"), dpi=300)
+        plt.close()
+
 
 def plot_false_color(img_array, nir=100, r=50, g=30):
     # 选择三个波段（例如，近红外、红、绿）
@@ -35,6 +58,19 @@ def plot_false_color(img_array, nir=100, r=50, g=30):
     plt.imshow(rgb)
     plt.title('False Color Image')
     plt.show()
+
+
+def delete_all_zero(img_array, samples_spectral, wavelengths):
+    # 检查全为0的波段，并剔除
+    zero_bands = []
+    for i in range(img_array.shape[0]):
+        if np.all(img_array[i] == 0):
+            zero_bands.append(i)
+    img_array = np.delete(img_array, zero_bands, axis=0)
+
+    samples_spectral = np.delete(samples_spectral, zero_bands, axis=0)
+    wavelengths = np.delete(wavelengths, zero_bands)
+    return img_array, samples_spectral, wavelengths
 
 
 def load_mining_region_data(plot=False, need_wavelengths=False):
@@ -76,6 +112,8 @@ def load_mining_region_data(plot=False, need_wavelengths=False):
 
     img_array = img_array.astype(np.float64)
     samples_spectral = samples_spectral.astype(np.float64)
+    # 检查全为0的波段，并剔除
+    img_array, samples_spectral, wavelengths = delete_all_zero(img_array, samples_spectral, wavelengths)
     if need_wavelengths:
         return img_array, samples_spectral, zn_content, som_content, wavelengths
     else:
@@ -85,7 +123,7 @@ def load_mining_region_data(plot=False, need_wavelengths=False):
 def load_cultivated_land_data(plot=False, need_wavelengths=False):
     file_name = 'data/cultivated land/'
     # 读取高光谱影像
-    img = spectral.envi.open(file_name+'Imagedata.hdr', file_name+'Imagedata.img')
+    img = spectral.envi.open(file_name + 'Imagedata.hdr', file_name + 'Imagedata.img')
     img_array = np.array(img.load())
     wavelengths = np.array(img.bands.centers)
 
@@ -103,14 +141,25 @@ def load_cultivated_land_data(plot=False, need_wavelengths=False):
 
     img_array = img_array.astype(np.float64)
     samples_spectral = samples_spectral.astype(np.float64)
+    # 检查全为0的波段，并剔除
+    img_array, samples_spectral, wavelengths = delete_all_zero(img_array, samples_spectral, wavelengths)
     if need_wavelengths:
         return img_array, samples_spectral, salt_content, som_content, wavelengths
     else:
         return img_array, samples_spectral, salt_content, som_content
 
+
 def main():
+    # 加载数据
     img_array, samples_spectral, salt_content, som_content, wavelengths = load_mining_region_data(
         need_wavelengths=True)
+
+    # 进行转置操作
+    img_array = np.transpose(img_array, (2, 0, 1))
+    print(img_array.shape)
+    # 显示并保存
+    display_and_save_bands(img_array)
+
 
 if __name__ == '__main__':
     main()

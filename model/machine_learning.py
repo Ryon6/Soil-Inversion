@@ -45,7 +45,8 @@ def ml_model_test(X, y, hsi=None, models=None, plot=False, seed=42):
         r2 = r2_score(y_test, y_pred)
         results[name] = {'rmse': rmse, 'r2': r2}
         if r2 > best_r2:
-            best_r2 = r2; best_model_name = name
+            best_r2 = r2
+            best_model_name = name
 
     # 提取MSE和R-squared数据
     rmse_values = [result['rmse'] for result in results.values()]
@@ -53,18 +54,18 @@ def ml_model_test(X, y, hsi=None, models=None, plot=False, seed=42):
 
     if hsi is not None:
         hsi_shape = hsi.shape
-        hsi = np.reshape(hsi,[hsi_shape[0],-1])
+        hsi = np.reshape(hsi, [hsi_shape[0], -1])
 
         # 测试集上表现最优的模型
         model = models[best_model_name]
         model.fit(X_train, y_train)
         print('最优模型', model.__class__)
-        print('最优r2',best_r2)
+        print('最优r2', best_r2)
         print('最优RMSE', np.max(rmse_values))
         hsi = scaler.transform(hsi.T)
 
         y_pred = model.predict(hsi)
-        y_pred = np.reshape(y_pred,[hsi_shape[1], hsi_shape[2]])
+        y_pred = np.reshape(y_pred, [hsi_shape[1], hsi_shape[2]])
         return y_pred
 
     if plot:
@@ -90,3 +91,23 @@ def ml_model_test(X, y, hsi=None, models=None, plot=False, seed=42):
         plt.show()
 
     return rmse_values, r2_values
+
+
+def para_search(X, y):
+    from sklearn.model_selection import GridSearchCV
+    svr = SVR()
+    # 定义参数网格
+    param_grid = {
+        'C': [0.1, 1, 8],
+        'epsilon': [0.1, 0.01, 0.001],
+        # 'kernel': ['rbf', 'linear', 'poly', 'sigmoid'],
+        'gamma': ['scale', 0.01, 0.1, 0.05, 0.001]
+    }
+    # 创建网格搜索对象
+    grid_search = GridSearchCV(estimator=svr, param_grid=param_grid, cv=3, scoring='r2')
+
+    # 执行网格搜索
+    grid_search.fit(X, y)
+    # 打印最佳参数和最佳得分
+    print(grid_search.best_params_)
+    print(grid_search.best_score_)
