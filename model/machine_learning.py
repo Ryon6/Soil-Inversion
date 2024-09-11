@@ -65,9 +65,7 @@ def ml_model_test(X, y, hsi=None, models=None, plot=False, seed=42):
 
         y_pred = model.predict(hsi)
         y_pred = np.reshape(y_pred,[hsi_shape[1], hsi_shape[2]])
-        plt.imshow(y_pred)
-        plt.colorbar()
-        plt.show()
+        return y_pred
 
     if plot:
         # 设置matplotlib显示中文
