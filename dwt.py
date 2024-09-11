@@ -1,4 +1,4 @@
-# 离散小波变换 test.py
+# TODO: 提高效率
 import numpy as np
 import pywt
 from load_data import load_mining_region_data
@@ -45,8 +45,6 @@ def wavelet_denoising(img, wavelet='db4', level=3):
             denoised_img[:, i, j] = denoised_signal
 
     return denoised_img
-
-
 
 
 def main():
