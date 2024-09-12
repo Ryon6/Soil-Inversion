@@ -125,7 +125,7 @@ def main():
     }
     # models = {'SVR': SVR(C=8, epsilon=0.001, gamma=0.01)}
     # models = {'RF': RandomForestRegressor()}
-    feature_select_test(X, som_content, method='LASSO', models=models, dims=range(4, 42), plot=True)
+    feature_select_test(X, som_content, method='LASSO', models=models, dims=range(6, 42), plot=True)
 
 
 if __name__ == '__main__':
