@@ -1,7 +1,5 @@
 """
-TODO: feature_select 重构：过滤法，包裹法，嵌入法
 TODO: 噪声波段去除
-TODO: PCA降维
 """
 import numpy as np
 from sklearn.feature_selection import mutual_info_regression
