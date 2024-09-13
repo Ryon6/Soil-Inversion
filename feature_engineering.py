@@ -86,7 +86,8 @@ def feature_select_test(X, y, method='mi', models=None, dims=range(3, 42, 2), pl
     # 评估特征数量为dims的r2值
     r2_list = []
     for dim in dims:
-        feature, _ = feature_select(X, y, dim, method=method)
+        feature, indices = feature_select(X, y, dim, method=method)
+        print(indices)
         rmse_values, r2_values = ml_model_test(feature, y, models=models, plot=False)
         r2_list.append(max(r2_values))
 
@@ -125,7 +126,15 @@ def main():
     }
     # models = {'SVR': SVR(C=8, epsilon=0.001, gamma=0.01)}
     # models = {'RF': RandomForestRegressor()}
-    feature_select_test(X, som_content, method='LASSO', models=models, dims=range(4, 42), plot=True)
+    feature_select_test(X, som_content, method='mi', models=models, dims=range(4, 42), plot=True)
+    # indices = [286,7,105,133,8,290,138,190,195,127,193,295,166,291,117]
+    # X = X[:, indices]
+    # r2_list = []
+    # for i in range(10):
+    #     rmse_values, r2_values = ml_model_test(X, som_content, models=models, plot=False)
+    #     r2_list.append(r2_values)
+    #     print(r2_values)
+    # print(np.mean(r2_list))
 
 
 if __name__ == '__main__':

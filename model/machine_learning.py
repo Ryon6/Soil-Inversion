@@ -47,6 +47,15 @@ def ml_model_test(X, y, hsi=None, models=None, plot=False, seed=42):
         if r2 > best_r2:
             best_r2 = r2
             best_model_name = name
+        if plot:
+            y_pred = model.predict(X_test)
+            plt.plot(y_pred, marker='o')
+            plt.plot(y_test, marker='o')
+            plt.xlabel('samples')
+            plt.ylabel('som_content')
+            plt.title('som_content vs samples')
+            plt.grid(True)
+            plt.show()
 
     # 提取MSE和R-squared数据
     rmse_values = [result['rmse'] for result in results.values()]
@@ -58,7 +67,7 @@ def ml_model_test(X, y, hsi=None, models=None, plot=False, seed=42):
 
         # 测试集上表现最优的模型
         model = models[best_model_name]
-        model.fit(X_train, y_train)
+        # model.fit(X_train, y_train)
         print('最优模型', model.__class__)
         print('最优r2', best_r2)
         print('最优RMSE', np.max(rmse_values))
@@ -67,28 +76,6 @@ def ml_model_test(X, y, hsi=None, models=None, plot=False, seed=42):
         y_pred = model.predict(hsi)
         y_pred = np.reshape(y_pred, [hsi_shape[1], hsi_shape[2]])
         return y_pred
-
-    if plot:
-        # 设置matplotlib显示中文
-        # plt.rcParams['font.sans-serif'] = ['AR PL UKai CN']  # 指定默认字体
-        plt.rcParams['axes.unicode_minus'] = False  # 解决保存图像是负号'-'显示为方块的问题
-        # 创建子图
-        fig, ax1 = plt.subplots()
-
-        # 绘制MSE折线图
-        color = 'tab:blue'
-        ax1.set_xlabel('model')
-        ax1.set_ylabel('MSE', color=color)
-        ax1.plot(list(models.keys()), rmse_values, color=color, label='MSE')
-        ax1.tick_params(axis='y', labelcolor=color)
-
-        # 创建第二个y轴，绘制R-squared折线图
-        ax2 = ax1.twinx()  # 创建共享x轴的第二个y轴
-        color = 'tab:red'
-        ax2.set_ylabel('R-squared', color=color)
-        ax2.plot(list(models.keys()), r2_values, color=color, label='squared')
-        ax2.tick_params(axis='y', labelcolor=color)
-        plt.show()
 
     return rmse_values, r2_values
 
