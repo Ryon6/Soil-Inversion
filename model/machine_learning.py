@@ -3,20 +3,15 @@
 """
 import matplotlib.pyplot as plt
 import numpy as np
-
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
-
-from sklearn.linear_model import LinearRegression
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.svm import SVR
+from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPRegressor
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVR
 
 
 def ml_model_test(X, y, hsi=None, models=None, plot=False, seed=42):
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=seed)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=seed)
 
     # 标准化
     scaler = StandardScaler()

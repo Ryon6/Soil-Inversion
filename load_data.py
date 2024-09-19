@@ -12,12 +12,13 @@ data
         soil_samples.xlsx
         土壤赛道-矿区数据集说明.txt
 """
-import rasterio
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import spectral
 import os
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import rasterio
+import spectral
 
 
 def display_and_save_bands(img_array, output_folder="output"):
@@ -87,8 +88,8 @@ def load_mining_region_data(plot=False, need_wavelengths=False):
     df = pd.read_excel(file_name + 'soil_samples.xlsx')
 
     # 获取土壤样本在影像中的位置
-    row_indices = np.int8(df.iloc[3, 1:])
-    col_indices = np.int8(df.iloc[4, 1:])
+    row_indices = np.int32(df.iloc[3, 1:])
+    col_indices = np.int32(df.iloc[4, 1:])
     zn_content = np.array(df.iloc[1, 1:])
     som_content = np.array(df.iloc[2, 1:])
 

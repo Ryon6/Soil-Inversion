@@ -3,18 +3,16 @@ TODO: feature_select 重构：过滤法，包裹法，嵌入法
 TODO: 噪声波段去除
 TODO: PCA降维
 """
+import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.feature_selection import mutual_info_regression
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.feature_selection import mutual_info_regression
 from sklearn.linear_model import Lasso
-from sklearn.svm import SVR
 from sklearn.neural_network import MLPRegressor
 
-from load_data import load_mining_region_data, load_cultivated_land_data
 from dwt import wavelet_denoising
+from load_data import load_mining_region_data
 from model.machine_learning import ml_model_test
-import matplotlib.pyplot as plt
-
 
 
 def feature_select(X, y, dim=20, method='rf'):
@@ -36,6 +34,8 @@ def feature_select(X, y, dim=20, method='rf'):
         rf = RandomForestRegressor(n_estimators=100, random_state=42)
         rf.fit(X, y)
         scores = rf.feature_importances_
+        plt.plot(scores)
+        plt.show()
         selected_indices = np.argsort(scores)[-dim:]
     elif method == 'LASSO':
         lasso = Lasso(alpha=0.2, max_iter=5000)  # alpha参数控制正则化的强度
@@ -85,11 +85,15 @@ def second_order_differential(hsi):
 def feature_select_test(X, y, method='mi', models=None, dims=range(3, 42, 2), plot=False):
     # 评估特征数量为dims的r2值
     r2_list = []
+    indices_list = []
     for dim in dims:
         feature, indices = feature_select(X, y, dim, method=method)
-        print(indices)
-        rmse_values, r2_values = ml_model_test(feature, y, models=models, plot=False)
-        r2_list.append(max(r2_values))
+        r2_tmp = []
+        for i in range(5):
+            rmse_values, r2_values = ml_model_test(feature, y, models=models, plot=False)
+            r2_tmp.append(max(r2_values))
+        r2_list.append(np.mean(r2_tmp))
+        indices_list.append(indices)
 
     if plot:
         # 绘制折线图
@@ -105,11 +109,13 @@ def feature_select_test(X, y, method='mi', models=None, dims=range(3, 42, 2), pl
     optimal_dim = dims[np.argmax(r2_list)]
     print(f'Optimal number of features: {optimal_dim}')
     print(f'Optimal R-square: {np.max(r2_list)}')
+    print(f'Optimal R-square: {indices_list[np.argmax(r2_list)]}')
 
 
 def main():
     img_array, samples_spectral, zn_content, som_content, wavelengths = load_mining_region_data(need_wavelengths=True)
     samples_spectral = samples_spectral.T
+    y = zn_content
 
     # 光谱微分变换
     X = first_order_differential(samples_spectral, wavelengths, axis=1)
@@ -121,12 +127,14 @@ def main():
 
     # para_search(samples_spectral, som_content)
     models = {
-        'MLPRegressor': MLPRegressor(hidden_layer_sizes=(100, 200, 100), max_iter=4000, alpha=0.001,
+        'LASSO': MLPRegressor(hidden_layer_sizes=(100, 200, 100), max_iter=4000, alpha=0.001,
                                      learning_rate_init=0.001),
     }
+    models = {'Lasso': Lasso()}
     # models = {'SVR': SVR(C=8, epsilon=0.001, gamma=0.01)}
     # models = {'RF': RandomForestRegressor()}
-    feature_select_test(X, som_content, method='mi', models=models, dims=range(4, 42), plot=True)
+    feature, indices = feature_select(X, y, 100, method='rf')
+    # feature_select_test(X, y, method='mi', models=models, dims=range(4, 42), plot=True)
     # indices = [286,7,105,133,8,290,138,190,195,127,193,295,166,291,117]
     # X = X[:, indices]
     # r2_list = []

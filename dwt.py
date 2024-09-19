@@ -1,8 +1,9 @@
-import numpy as np
-import pywt
-from load_data import load_mining_region_data
 # from feature_engineering import first_order_differential
 import matplotlib.pyplot as plt
+import numpy as np
+import pywt
+
+from load_data import load_mining_region_data
 
 
 def wavelet_denoising(img, wavelet='db4', level=3):
@@ -51,12 +52,9 @@ def main():
     samples_spectral = samples_spectral.T
     y = zn_content
 
-    # 异常值去除
-    img_array, samples_spectral, wavelengths = delete_all_zero(img_array, samples_spectral, wavelengths)
-
-    # 光谱微分变换
-    samples_spectral = first_order_differential(samples_spectral, wavelengths, axis=1)
-    img_array = first_order_differential(img_array, wavelengths, axis=0)
+    # # 光谱微分变换
+    # samples_spectral = first_order_differential(samples_spectral, wavelengths, axis=1)
+    # img_array = first_order_differential(img_array, wavelengths, axis=0)
 
     # reconstructed_image = wavelet_denoising(img_array, wavelet='db4', level=4)
     reconstructed_samples_spectral = wavelet_denoising(samples_spectral.T, wavelet='db4', level=4)
