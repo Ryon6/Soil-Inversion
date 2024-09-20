@@ -60,10 +60,11 @@ def plot():
 
 if __name__ == '__main__':
     output_folder = 'output'
-
-    img_array, samples_spectral, zn_content, som_content, wavelengths = load_mining_region_data(need_wavelengths=True)
+    img_array, samples_spectral, salt_content, som_content, wavelengths = load_cultivated_land_data(
+        need_wavelengths=True)
+    # img_array, samples_spectral, zn_content, som_content, wavelengths = load_mining_region_data(need_wavelengths=True)
     X = samples_spectral.T
-    y = zn_content
+    y = salt_content
 
     # 光谱微分变换
     X = first_order_differential(X, wavelengths, axis=1)
@@ -73,8 +74,8 @@ if __name__ == '__main__':
     X = wavelet_denoising(X.T, 'db4', 4).T
     hsi = wavelet_denoising(hsi, 'db4', 4)
 
-    X, indices = feature_select(X, y, 3, method='rf')
-    hsi = hsi[indices, :, :]
+    # X, indices = feature_select(X, y, 3, method='rf')
+    # hsi = hsi[indices, :, :]
     # plt.plot(hsi[:,208,578])
     # plt.plot(X[0,:])
     # plt.show()
@@ -105,7 +106,7 @@ if __name__ == '__main__':
     # 设置colorbar范围，可以根据实际情况调整
     plt.clim(vmin, vmax)
 
-    plt.title('dim={}'.format(15))
+    plt.title('Salt')
     plt.show()
 
     # plt.savefig(os.path.join(output_folder, f"dim_{15}.png"), dpi=300)

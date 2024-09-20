@@ -7,12 +7,12 @@ from sklearn.preprocessing import StandardScaler
 
 from dwt import wavelet_denoising
 from feature_engineering import first_order_differential
-from load_data import load_mining_region_data
+from load_data import load_mining_region_data, load_cultivated_land_data
 from model.bi_lstm import BiLSTMRegressor
 
 
 def main():
-    img_array, samples_spectral, zn_content, som_content, wavelengths = load_mining_region_data(need_wavelengths=True)
+    img_array, samples_spectral, zn_content, som_content, wavelengths = load_cultivated_land_data(need_wavelengths=True)
     X = samples_spectral.T
     y = np.float32(som_content)
 

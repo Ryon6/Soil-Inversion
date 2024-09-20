@@ -142,7 +142,8 @@ def load_cultivated_land_data(plot=False, need_wavelengths=False):
     # print(samples_spectral)
 
     img_array = img_array.astype(np.float64)
-    samples_spectral = samples_spectral.astype(np.float64)
+    img_array = np.transpose(img_array, (2, 0, 1))
+    samples_spectral = samples_spectral.astype(np.float64).T
     # 检查全为0的波段，并剔除
     img_array, samples_spectral, wavelengths = delete_all_zero(img_array, samples_spectral, wavelengths)
     if need_wavelengths:
