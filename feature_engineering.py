@@ -5,6 +5,7 @@ TODO: PCA降维
 """
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.feature_selection import mutual_info_regression
 from sklearn.linear_model import Lasso
@@ -33,16 +34,22 @@ def feature_select(X, y, dim=20, method='rf'):
         # 训练随机森林模型，获取特征重要性
         rf = RandomForestRegressor(n_estimators=100, random_state=42)
         rf.fit(X, y)
+        print(rf.score(X, y))
         scores = rf.feature_importances_
-        plt.plot(scores)
-        plt.show()
+        # plt.plot(scores)
+        # plt.show()
         selected_indices = np.argsort(scores)[-dim:]
     elif method == 'LASSO':
-        lasso = Lasso(alpha=0.2, max_iter=5000)  # alpha参数控制正则化的强度
+        lasso = Lasso()  # alpha参数控制正则化的强度
         lasso.fit(X, y)
+        print(lasso.score(X, y))
         # 获取特征系数
         scores = lasso.coef_
-        selected_indices = np.argsort(np.abs(scores))[-dim:]
+        selected_indices = np.argsort(scores)[-dim:]
+    elif method == 'person':
+        Y1 = pd.Series(y)
+        scores = [pd.Series(X[:, i]).corr(Y1) for i in range(X.shape[1])]
+        selected_indices = np.argsort(scores)[-dim:]
     else:
         return
 
@@ -70,16 +77,6 @@ def first_order_differential(hsi, wavelengths, axis=1):
     first_diff = diff_hsi / (2 * delta_lambda)
 
     return first_diff
-
-
-def second_order_differential(hsi):
-    """
-
-    光谱二阶微分变换
-    :param hsi: 高光谱图像
-    :return:变换结果
-    """
-    return hsi
 
 
 def feature_select_test(X, y, method='mi', models=None, dims=range(3, 42, 2), plot=False):
@@ -127,14 +124,14 @@ def main():
 
     # para_search(samples_spectral, som_content)
     models = {
-        'LASSO': MLPRegressor(hidden_layer_sizes=(100, 200, 100), max_iter=4000, alpha=0.001,
+        'MLP': MLPRegressor(hidden_layer_sizes=(100, 200, 100), max_iter=4000, alpha=0.001,
                                      learning_rate_init=0.001),
     }
-    models = {'Lasso': Lasso()}
+    # models = {'Lasso': Lasso()}
     # models = {'SVR': SVR(C=8, epsilon=0.001, gamma=0.01)}
-    # models = {'RF': RandomForestRegressor()}
-    feature, indices = feature_select(X, y, 100, method='rf')
-    # feature_select_test(X, y, method='mi', models=models, dims=range(4, 42), plot=True)
+    models = {'RF': RandomForestRegressor()}
+    # feature, indices = feature_select(X, y, 20, method='rf')
+    feature_select_test(X, y, method='rf', models=models, dims=range(4, 42), plot=True)
     # indices = [286,7,105,133,8,290,138,190,195,127,193,295,166,291,117]
     # X = X[:, indices]
     # r2_list = []

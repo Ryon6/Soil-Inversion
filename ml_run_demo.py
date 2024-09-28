@@ -29,7 +29,8 @@ def plot():
     X = wavelet_denoising(X.T, 'db4', 5).T
     img_array = wavelet_denoising(img_array, 'db4', 5)
 
-    indices = [286, 7, 105, 133, 8, 290, 138, 190, 195, 127, 193, 295, 166, 291, 117]
+    # indices = [286, 7, 105, 133, 8, 290, 138, 190, 195, 127, 193, 295, 166, 291, 117]
+    feature, indices = feature_select(X, y, 100, method='rf')
     X = X[:, indices]
     hsi = img_array[indices, :, :]
 
@@ -63,8 +64,8 @@ if __name__ == '__main__':
     img_array, samples_spectral, salt_content, som_content, wavelengths = load_cultivated_land_data(
         need_wavelengths=True)
     # img_array, samples_spectral, zn_content, som_content, wavelengths = load_mining_region_data(need_wavelengths=True)
-    X = samples_spectral.T
-    y = salt_content
+    X = samples_spectral
+    y = som_content
 
     # 光谱微分变换
     X = first_order_differential(X, wavelengths, axis=1)
@@ -74,7 +75,7 @@ if __name__ == '__main__':
     X = wavelet_denoising(X.T, 'db4', 4).T
     hsi = wavelet_denoising(hsi, 'db4', 4)
 
-    # X, indices = feature_select(X, y, 3, method='rf')
+    # X, indices = feature_select(X, y, 40, method='person')
     # hsi = hsi[indices, :, :]
     # plt.plot(hsi[:,208,578])
     # plt.plot(X[0,:])
@@ -87,9 +88,9 @@ if __name__ == '__main__':
     #     'RandomForestRegressor': RandomForestRegressor(n_estimators=500)
     # }
     models = {
-        'AdaBoostRegressor': AdaBoostRegressor(),
+        # 'AdaBoostRegressor': AdaBoostRegressor(),
         'MLPRegressor': MLPRegressor(),
-        'RandomForestRegressor': RandomForestRegressor()
+        # 'RandomForestRegressor': RandomForestRegressor()
     }
 
     # indices = [286, 7, 105, 133, 8, 290, 138, 190, 195, 127, 193, 295, 166, 291, 117]
@@ -105,6 +106,8 @@ if __name__ == '__main__':
     vmin, vmax = np.min(y_pred), np.max(y_pred)
     # 设置colorbar范围，可以根据实际情况调整
     plt.clim(vmin, vmax)
+    print(vmax, vmin)
+
 
     plt.title('Salt')
     plt.show()

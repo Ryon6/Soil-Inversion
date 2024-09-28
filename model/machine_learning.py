@@ -62,7 +62,8 @@ def ml_model_test(X, y, hsi=None, models=None, plot=False, seed=42):
 
         # 测试集上表现最优的模型
         model = models[best_model_name]
-        # model.fit(X_train, y_train)
+        X_scaled = scaler.transform(X)
+        model.fit(X_scaled, y)
         print('最优模型', model.__class__)
         print('最优r2', best_r2)
         print('最优RMSE', np.max(rmse_values))
